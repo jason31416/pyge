@@ -1,4 +1,4 @@
-import game
+import pyge.game as game
 import time
 
 class Button(game.Picture):

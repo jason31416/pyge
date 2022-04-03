@@ -1,3 +1,3 @@
-from game import *
-import constant as constant
-import objs as objs
+from pyge.game import *
+import pyge.constant as constant
+import pyge.objs as objs

@@ -3,6 +3,19 @@ import time
 import random
 from typing import Dict
 
+_str = "str"
+_int = "int"
+_float = "float"
+_bool = "bool"
+_list = "list"
+_tuple = "tuple"
+
+def_all_evs = [["M_down", _int, _tuple], ["M_move", _tuple], ["K_down", _int], ["K_up", _int]]
+
+_keys = "abcdefghijklmnopqrstuvwxyz0123456789-=[]\\;',./~"
+
+
+
 Surface = pygame.Surface
 
 class Picture:
@@ -96,13 +109,11 @@ class Game:
         self.all_objs: Dict[str, Dict[str, Picture]] = {"main": {}}
         self.use_threading = False
         self.now_page = "main"
-        self.all_events = ["QUIT", "KEYDOWN", "KEYUP", "MOUSEMOTION", "MOUSEBUTTONDOWN"]
-        self.evlistener = {}
-        self.is_event_active = {}
-        for i in self.all_events:
-            self.evlistener[i] = []
-            self.is_event_active[i] = False
-        self.add_event_listener("QUIT", self.quit)
+        self.event = {"QUIT": [[_str], [self.quit]]}
+        self.event_active = {"QUIT": []}
+        for i in def_all_evs:
+            self.event[i[0]] = [i[1:], []]
+            self.event_active[i[0]] = []
         self.setup()
 
     def scsetup(self):
@@ -117,22 +128,22 @@ class Game:
     def update_front(self):
         pass
 
-    def add_event(self, event):
-        self.all_events.append(event)
-        self.evlistener[event] = []
-        self.is_event_active[event] = False
+    def add_event(self, event, *args):
+        self.event[event] = [args, []]
+        self.event_active[event] = []
 
     def catch_event(self, event):
-        self.is_event_active[event] = False
+        self.event_active[event] = []
 
-    def active_event(self, event):
-        self.is_event_active[event] = True
+    def active_event(self, event, *args):
+        self.event_active[event].append(args)
 
     def add_event_listener(self, event, func):
-        self.evlistener[event].append(func)
+        self.event[event][1].append(func)
 
     def remove_event_listener(self, event, func):
-        self.evlistener[event].remove(func)
+        if func in self.event[event][1]:
+            self.event[event][1].remove(func)
 
     def add_obj(self, obj: Picture, name: str = None, page: str = None):
         if name == "unnamed":
@@ -165,7 +176,7 @@ class Game:
     def set_caption(self, caption):
         pygame.display.set_caption(caption)
 
-    def quit(self, gm):
+    def quit(self, gm, reason):
         self.running = False
         pygame.quit()
 
@@ -201,18 +212,21 @@ class Game:
                 self.all_objs[self.now_page][i].update(self)
             for ev in self.events:
                 if ev.type == pygame.QUIT:
-                    self.active_event("QUIT")
+                    self.active_event("QUIT", "user_quit")
                 if ev.type == pygame.KEYDOWN:
-                    self.active_event("KEYDOWN")
+                    self.active_event("K_down", ev.key)
                 if ev.type == pygame.KEYUP:
-                    self.active_event("KEYUP")
+                    self.active_event("K_up", ev.key)
+                if ev.type == pygame.MOUSEMOTION:
+                    self.active_event("M_move", ev.pos)
             if self.mouse_click[0]:
-                self.active_event("MOUSEBUTTONDOWN")
+                self.active_event("M_down", self.mouse_pos)
             self.update_front()
-            for i in self.all_events:
-                if self.is_event_active[i]:
-                    for j in self.evlistener[i]:
-                        j(self)
+            for i in self.event.keys():
+                for j in self.event_active[i]:
+                    for k in self.event[i][1]:
+                        k(self, *j)
+                self.event_active[i] = []
             if self.running:
                 pygame.display.update()
                 while ticktime + 1/self.tick_rate > time.time():

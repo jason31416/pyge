@@ -637,3 +637,8 @@ WINDOWSIZECHANGED = 32779
 WINDOWTAKEFOCUS = 32788
 
 # ^ from pygame
+
+K_down = "K_down"
+M_down = "M_down"
+M_move = "M_move"
+QUIT = "QUIT"
