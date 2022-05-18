@@ -102,6 +102,7 @@ class Game:
         self.running = True
         self.events = []
         self.keys = []
+        self.lst_keys = [False]*1000
         self.mouse_pos = pygame.mouse.get_pos()
         self.mouse_click = pygame.mouse.get_pressed()
         self.tick = 0
@@ -181,9 +182,13 @@ class Game:
         pygame.quit()
 
     def draw_text(self, text, x, y, size = 24, font = None, color = (255, 255, 255)):
-        ft = pygame.font.Font(font, size)
+        if font is None:
+            ft = pygame.font.Font(font, size)
+        else:
+            ft = pygame.font.SysFont(font, size)
         txt = ft.render(text, True, color)
         self.sc.blit(txt, (x, y))
+        return txt
 
     def add_page(self, page):
         self.all_objs[page] = {}
@@ -222,6 +227,7 @@ class Game:
             if self.mouse_click[0]:
                 self.active_event("M_down", self.mouse_pos)
             self.update_front()
+            self.lst_keys = [i for i in self.keys]
             for i in self.event.keys():
                 for j in self.event_active[i]:
                     for k in self.event[i][1]:
